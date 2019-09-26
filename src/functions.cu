@@ -807,6 +807,14 @@ __global__ void DFT2D(cufftComplex *Vm, cufftComplex *I, double3 *UVW, float *no
 
 __host__ void do_gridding(Field *fields, MSData *data, double deltau, double deltav, int M, int N, float robust)
 {
+        /* Extraer datos grideados */
+        char path[150] = "/home/hperez/Desktop/gridded_uv_values.csv";
+        FILE *output = fopen(path, "w");
+        if (output == NULL)
+                exit(1);
+        fprintf(output, "u,v,Vo_x,Vo_y,w\n");
+        /* ----------------------- */
+        
         int local_max = 0;
         int max = 0;
         float pow2_factor, S2, w_avg;
@@ -924,10 +932,23 @@ __host__ void do_gridding(Field *fields, MSData *data, double deltau, double del
                                                                 N * k + j].y;
                                                         fields[f].visibilities[i][s].weight[l] = fields[f].gridded_visibilities[i][s].weight[
                                                                 N * k + j];
+                                                        
+                                                        /* ------------------------ */
+                                                        
+                                                        fprintf(output, "%f,", fields[f].visibilities[i][s].uvw[l].x);
+                                                        fprintf(output, "%f,", fields[f].visibilities[i][s].uvw[l].y);
+                                                        fprintf(output, "%f,", fields[f].visibilities[i][s].Vo[l].x);
+                                                        fprintf(output, "%f,", fields[f].visibilities[i][s].Vo[l].y);
+                                                        fprintf(output, "%f\n", fields[f].visibilities[i][s].weight[l]);
+                                                        
+                                                        /* ------------------------ */
+
                                                         l++;
                                                 }
                                         }
                                 }
+
+                                printf("\n ---- Gridiando ---- \n");
 
                                 free(fields[f].gridded_visibilities[i][s].uvw);
                                 free(fields[f].gridded_visibilities[i][s].Vo);
@@ -1243,6 +1264,19 @@ __host__ void FFT2D(cufftComplex *V, cufftComplex *I, cufftHandle plan, int M, i
 
 }
 
+__host__ void iFFT2D(cufftComplex *V, cufftComplex *I, cufftHandle plan, int M, int N, bool shift)
+{
+
+        if ((cufftExecC2C(plan,
+                          (cufftComplex *) V,
+                          (cufftComplex *) I,
+                          CUFFT_INVERSE)) != CUFFT_SUCCESS) {
+                printf("CUIFFT exec error\n");
+                goToError();
+        }
+        gpuErrchk(cudaDeviceSynchronize());
+}
+
 /*__global__ void do_gridding(float *u, float *v, cufftComplex *Vo, cufftComplex *Vo_g, float *w, float *w_g, int* count, float deltau, float deltav, int visibilities, int M, int N)
    {
    int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -1285,7 +1319,8 @@ __host__ void FFT2D(cufftComplex *V, cufftComplex *I, cufftHandle plan, int M, i
    }else{
     w_g[N*i+j] = 0.0;
    }
-   }*/
+   }
+*/
 
 __global__ void hermitianSymmetry(double3 *UVW, cufftComplex *Vo, float freq, int numVisibilities)
 {
@@ -2684,6 +2719,9 @@ __host__ float chi2(float *I, VirtualImageProcessor *ip)
                                                                 datasets[d].fields[f].visibilities[i][s].threadsPerBlockUV >>>
                                                         (datasets[d].fields[f].device_visibilities[i][s].Vm, vars_gpu[0].device_V, datasets[d].fields[f].device_visibilities[i][s].uvw, datasets[d].fields[f].device_visibilities[i][s].weight, deltau, deltav, datasets[d].fields[f].numVisibilitiesPerFreqPerStoke[i][s], N);
                                                         gpuErrchk(cudaDeviceSynchronize());
+
+                                                        /* Obtener iFFT de datos grideados */
+                                                        iFFT2D(vars_gpu[0].device_V, vars_gpu[0].device_I_nu, vars_gpu[0].plan, M, N, false);
 
                                                         //DFT 2D
                                                         /*DFT2D <<<fields[f].visibilities[i][s].numBlocksUV,
