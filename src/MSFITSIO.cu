@@ -250,6 +250,14 @@ __host__ cufftComplex addNoiseToVis(cufftComplex vis, float weights){
 
 __host__ void readMS(char const *MS_name, Field *fields, MSData data, bool noise, bool W_projection, float random_prob)
 {
+        /* Write Visibilities */
+        char str_dir_final[150] = "/home/hperez/Desktop/co65_uv_values.csv";
+        FILE *visibilities_output_write = fopen(str_dir_final, "w");
+        if (visibilities_output_write == NULL)
+              exit(1);
+        fprintf(visibilities_output_write, "u, v, z, Vo_x (real), Vo_y (imag), w\n");
+        /* ----------------- */
+
 
         char *error = 0;
         int g = 0, h = 0;
@@ -319,6 +327,16 @@ __host__ void readMS(char const *MS_name, Field *fields, MSData data, bool noise
 
                                                         fields[f].visibilities[g+j][sto].weight[c] = weights[sto];
                                                         fields[f].numVisibilitiesPerFreqPerStoke[g+j][sto]++;
+                                                        
+                                                        /* ---------------------------------------------------------------------------- */
+                                                        fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].uvw[c].x);
+                                                        fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].uvw[c].y);
+                                                        fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].uvw[c].z);
+                                                        fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].Vo[c].x);
+                                                        fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].Vo[c].y);
+                                                        fprintf(visibilities_output_write, "%f\n", fields[f].visibilities[g+j][sto].weight[c]);
+                                                        /* ---------------------------------------------------------------------------- */
+
                                                 }
                                         }
                                 }
@@ -327,6 +345,7 @@ __host__ void readMS(char const *MS_name, Field *fields, MSData data, bool noise
                 }
         }
 
+        fclose(visibilities_output_write);
 
         for(int f=0; f<data.nfields; f++) {
                 for(int i=0; i<data.total_frequencies; i++) {
