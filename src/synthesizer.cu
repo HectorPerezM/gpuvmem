@@ -464,6 +464,7 @@ void MFS::configure(int argc, char **argv)
                 for(int d=0; d<nMeasurementSets; d++)
                         do_gridding(datasets[d].fields, &datasets[d].data, deltau, deltav, M, N, robust_param);
 
+                        
                 omp_set_num_threads(num_gpus);
         }
 }

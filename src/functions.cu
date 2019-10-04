@@ -812,7 +812,7 @@ __host__ void do_gridding(Field *fields, MSData *data, double deltau, double del
         FILE *output = fopen(path, "w");
         if (output == NULL)
                 exit(1);
-        fprintf(output, "u,v,Vo_x,Vo_y,w\n");
+        // fprintf(output, "u,v,Vo_x,Vo_y,w\n");
         /* ----------------------- */
         
         int local_max = 0;
@@ -934,7 +934,17 @@ __host__ void do_gridding(Field *fields, MSData *data, double deltau, double del
                                                                 N * k + j];
                                                         
                                                         /* ------------------------ */
-                                                        
+                                                        // double deltau_meters = fabs(deltau) * (LIGHTSPEED / fields[f].nu[i]);
+                                                        // double deltav_meters = fabs(deltav) * (LIGHTSPEED / fields[f].nu[i]);
+
+                                                        // int x,y;
+                                                        // x = (fields[f].visibilities[i][s].uvw[l].x / deltau_meters) + N/2;
+                                                        // y = (fields[f].visibilities[i][s].uvw[l].y / deltav_meters) + M/2;
+
+                                                        // fprintf(output, "%d,", x);
+                                                        // fprintf(output, "%d,", y);
+
+
                                                         fprintf(output, "%f,", fields[f].visibilities[i][s].uvw[l].x);
                                                         fprintf(output, "%f,", fields[f].visibilities[i][s].uvw[l].y);
                                                         fprintf(output, "%f,", fields[f].visibilities[i][s].Vo[l].x);
@@ -947,8 +957,6 @@ __host__ void do_gridding(Field *fields, MSData *data, double deltau, double del
                                                 }
                                         }
                                 }
-
-                                printf("\n ---- Gridiando ---- \n");
 
                                 free(fields[f].gridded_visibilities[i][s].uvw);
                                 free(fields[f].gridded_visibilities[i][s].Vo);
@@ -1266,6 +1274,10 @@ __host__ void FFT2D(cufftComplex *V, cufftComplex *I, cufftHandle plan, int M, i
 
 __host__ void iFFT2D(cufftComplex *V, cufftComplex *I, cufftHandle plan, int M, int N, bool shift)
 {
+        if(shift) {
+                fftshift_2D << < numBlocksNN, threadsPerBlockNN >> > (I, M, N);
+                gpuErrchk(cudaDeviceSynchronize());
+        }
 
         if ((cufftExecC2C(plan,
                           (cufftComplex *) V,
@@ -1275,6 +1287,11 @@ __host__ void iFFT2D(cufftComplex *V, cufftComplex *I, cufftHandle plan, int M, 
                 goToError();
         }
         gpuErrchk(cudaDeviceSynchronize());
+
+        if(shift) {
+                fftshift_2D << < numBlocksNN, threadsPerBlockNN >> > (I, M, N);
+                gpuErrchk(cudaDeviceSynchronize());
+        }
 }
 
 /*__global__ void do_gridding(float *u, float *v, cufftComplex *Vo, cufftComplex *Vo_g, float *w, float *w_g, int* count, float deltau, float deltav, int visibilities, int M, int N)
@@ -2721,7 +2738,7 @@ __host__ float chi2(float *I, VirtualImageProcessor *ip)
                                                         gpuErrchk(cudaDeviceSynchronize());
 
                                                         /* Obtener iFFT de datos grideados */
-                                                        iFFT2D(vars_gpu[0].device_V, vars_gpu[0].device_I_nu, vars_gpu[0].plan, M, N, false);
+                                                        // iFFT2D(vars_gpu[0].device_V, vars_gpu[0].device_I_nu, vars_gpu[0].plan, M, N, false);
 
                                                         //DFT 2D
                                                         /*DFT2D <<<fields[f].visibilities[i][s].numBlocksUV,

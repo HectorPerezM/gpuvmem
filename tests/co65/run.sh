@@ -7,6 +7,6 @@ echo "Running co65 with gridding!"
 -m ./mod_in_0.fits \
 -p ./mem/ \
 -f ./values.txt \
--z 0.001 -Z 0.001,0.0 \
--g 1 \
+-z 0.001 -Z 0.005,0.0 \
+#-g 4\
 # --verbose
