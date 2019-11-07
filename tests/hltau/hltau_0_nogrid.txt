@@ -1,0 +1,10 @@
+Iterations: 39
+chi2: 170136624.000000
+0.5*chi2: 85068312.000000
+Total visibilities: 3180560
+Reduced-chi2 (Num visibilities): 26.746331
+Reduced-chi2 (Weights sum): 0.001366
+S: 0.000000
+Normalized S: 0.000000
+lambda*S: 0.000000
+Wall time: 13802.743855
