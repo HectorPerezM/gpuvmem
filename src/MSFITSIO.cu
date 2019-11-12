@@ -251,11 +251,12 @@ __host__ cufftComplex addNoiseToVis(cufftComplex vis, float weights){
 __host__ void readMS(char const *MS_name, Field *fields, MSData data, bool noise, bool W_projection, float random_prob)
 {
         /* Write Visibilities */
-        char str_dir_final[150] = "/home/hperez/Desktop/co65_uv_values.csv";
+	printf("RUTA DE ARCHIVO CSV: /home/hperez/Desktop/*.csv\n");
+        char str_dir_final[150] = "/home/hperez/Desktop/hltau_uv_gridded.csv";
         FILE *visibilities_output_write = fopen(str_dir_final, "w");
         if (visibilities_output_write == NULL)
               exit(1);
-        fprintf(visibilities_output_write, "u, v, z, Vo_x (real), Vo_y (imag), w\n");
+        fprintf(visibilities_output_write, "u, v, z, Vo_x (real), Vo_y (imag), w, freq\n");
         /* ----------------- */
 
 
@@ -334,8 +335,9 @@ __host__ void readMS(char const *MS_name, Field *fields, MSData data, bool noise
                                                         fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].uvw[c].z);
                                                         fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].Vo[c].x);
                                                         fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].Vo[c].y);
-                                                        fprintf(visibilities_output_write, "%f\n", fields[f].visibilities[g+j][sto].weight[c]);
-                                                        /* ---------------------------------------------------------------------------- */
+                                                        fprintf(visibilities_output_write, "%f,", fields[f].visibilities[g+j][sto].weight[c]);
+                                                        fprintf(visibilities_output_write, "%f\n", fields[f].nu[g+j]);
+							/* ---------------------------------------------------------------------------- */
 
                                                 }
                                         }

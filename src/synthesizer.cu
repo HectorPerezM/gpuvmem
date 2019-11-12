@@ -467,6 +467,9 @@ void MFS::configure(int argc, char **argv)
                         
                 omp_set_num_threads(num_gpus);
         }
+
+	/* BORRAR */
+	exit(0);
 }
 
 void MFS::setDevice()
